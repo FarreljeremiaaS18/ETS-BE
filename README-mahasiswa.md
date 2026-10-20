@@ -1,7 +1,7 @@
 # PinjamKampus API
 
 - Nama dan NRP: Farrel Jeremia Santoso / 5053241029
-- Persona: 
+- Persona: Asisten Laboratorium
 - Cara menjalankan: `go run .` lalu buka http://localhost:8080
 
 ## Fitur
