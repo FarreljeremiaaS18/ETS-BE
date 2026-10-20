@@ -15,10 +15,17 @@ func NewHandler() http.Handler {
 	mux.HandleFunc("GET /sumber-daya", store.handleGetSumberDaya)
 	mux.HandleFunc("GET /sumber-daya/{id}", store.handleGetSumberDayaByID)
 
-	// Routing B2 & B3: Peminjaman
+	// Routing B2 & B3, B6: Peminjaman
 	mux.HandleFunc("POST /peminjaman", store.handlePostPeminjaman)
 	mux.HandleFunc("GET /peminjaman", store.handleGetPeminjaman)
 	mux.HandleFunc("GET /peminjaman/{id}", store.handleGetPeminjamanByID)
+	mux.HandleFunc("PUT /peminjaman/{id}", store.handlePutPeminjaman)
+	mux.HandleFunc("DELETE /peminjaman/{id}", store.handleDeletePeminjaman)
+
+	// Routing Persona E: Blokir
+	mux.HandleFunc("POST /blokir", store.handlePostBlokir)
+	mux.HandleFunc("GET /blokir", store.handleGetBlokir)
+	mux.HandleFunc("DELETE /blokir/{id}", store.handleDeleteBlokir)
 
 	return mux
 }
