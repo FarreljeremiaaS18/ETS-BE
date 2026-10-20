@@ -97,8 +97,14 @@ func (s *MemoryStore) handlePostPeminjaman(w http.ResponseWriter, r *http.Reques
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if err := s.cekBentrok(&input, 0); err != nil {
-		sendError(w, http.StatusConflict, err.Error())
+	bentrokIDs, err := s.cekBentrok(&input, 0)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusConflict) 
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"error":          err.Error(),
+			"bentrok_dengan": bentrokIDs, 
+		})
 		return
 	}
 
@@ -200,7 +206,7 @@ func (s *MemoryStore) handlePutPeminjaman(w http.ResponseWriter, r *http.Request
 		return
 	}
 	
-	if err := s.cekBentrok(&input, id); err != nil {
+	if _, err := s.cekBentrok(&input, id); err != nil {
 		sendError(w, http.StatusConflict, err.Error()) 
 		return
 	}

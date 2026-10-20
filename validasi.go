@@ -69,43 +69,49 @@ func (s *MemoryStore) validatePeminjaman(input *Peminjaman) error {
 var ErrBentrok = errors.New("bentrok kapasitas slot")
 
 
-func (s *MemoryStore) cekBentrok(input *Peminjaman, ignoreID int) error {
-	
+func (s *MemoryStore) cekBentrok(input *Peminjaman, ignoreID int) ([]int, error) {
+	for i := 1; i < s.NextBlokirID; i++ {
+		if b, exists := s.Blokir[i]; exists {
+			if b.SumberDayaID == input.SumberDayaID && b.Tanggal == input.Tanggal {
+				if input.SlotMulai <= b.SlotSelesai && input.SlotSelesai >= b.SlotMulai {
+					return []int{}, errors.New("jadwal diblokir oleh asisten laboratorium")
+				}
+			}
+		}
+	}
+
 	sd := s.SumberDaya[input.SumberDayaID]
-
-	for _, b := range s.Blokir {
-		if b.SumberDayaID == input.SumberDayaID && b.Tanggal == input.Tanggal {
-			if input.SlotMulai <= b.SlotSelesai && input.SlotSelesai >= b.SlotMulai {
-				return errors.New("jadwal diblokir oleh asisten laboratorium") // 409[cite: 1]
-			}
-		}
-	}
-
 	terpakai := make([]int, 9)
+	bentrokIDs := []int{} 
 
-	
-	for _, p := range s.Peminjaman {
-		
-		if p.Status == "aktif" && p.SumberDayaID == input.SumberDayaID && p.Tanggal == input.Tanggal {
-			
-			if p.ID == ignoreID {
-				continue 
-			}
-			
-			for i := p.SlotMulai; i <= p.SlotSelesai; i++ {
-				terpakai[i] += p.Jumlah
+	for i := 1; i < s.NextPeminjamanID; i++ {
+		if p, exists := s.Peminjaman[i]; exists {
+			if p.Status == "aktif" && p.SumberDayaID == input.SumberDayaID && p.Tanggal == input.Tanggal {
+				if p.ID == ignoreID {
+					continue
+				}
+				
+				isOverlap := false
+				for j := p.SlotMulai; j <= p.SlotSelesai; j++ {
+					terpakai[j] += p.Jumlah
+					if j >= input.SlotMulai && j <= input.SlotSelesai {
+						isOverlap = true
+					}
+				}
+				if isOverlap {
+					bentrokIDs = append(bentrokIDs, p.ID)
+				}
 			}
 		}
 	}
 
-	
 	for i := input.SlotMulai; i <= input.SlotSelesai; i++ {
 		if terpakai[i]+input.Jumlah > sd.Stok {
-			return ErrBentrok 
+			return bentrokIDs, ErrBentrok
 		}
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (s *MemoryStore) validateBlokir(input *Blokir) error {

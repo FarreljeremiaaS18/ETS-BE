@@ -28,3 +28,6 @@ Alasan memilih ini: Karena sistem mengizinkan satu sumber daya dipinjam beberapa
 
 ## 5. Change request
 (Apa yang diminta, bagian kode mana yang kamu ubah, dan satu keputusan desain yang kamu ambil.)
+Permintaan: Menambahkan field bentrok_dengan pada respons HTTP 409 khusus untuk POST /peminjaman.
+Kode yang diubah: Memodifikasi fungsi cekBentrok di validasi.go untuk mengembalikan array ID, serta memodifikasi handlePostPeminjaman dan handlePutPeminjaman di handler.go.
+Satu keputusan desain: Saya mengubah iterasi pengecekan dari range map menjadi for i := 1; i < s.NextPeminjamanID; i++. Karena map di Go tidak memiliki urutan, iterasi berbasis ID ini mengamankan syarat dokumen CR agar data bentrok_dengan terjamin urut naik dari awal tanpa perlu memanggil fungsi sort tambahan yang memakan proses komputasi.
