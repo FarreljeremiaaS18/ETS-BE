@@ -5,62 +5,24 @@ Catat setiap penggunaan AI yang menghasilkan kode. Jika tidak memakai AI sama se
 Log yang jujur tidak mengurangi nilai, sebanyak apa pun AI dipakai. Yang mengurangi nilai adalah log yang tidak sesuai dengan kode, atau isi log yang tidak bisa dijelaskan.
 
 ## (Nama fitur atau fungsi, misalnya: Deteksi bentrok slot, B5)
-- Prompt: Saya sedang mengerjakan ETS mata kuliah back-end, saya mendapat persona Asisten Laboratorium, bantu saya untuk membuat rancangan struktur data untuk project ini
-- Dipakai: 
-package main
+# AI-LOG
 
-import "sync"
+## 1. Rancangan Struktur Data dan Setup Server (models.go & main.go)
+- Prompt: Minta rancangan struktur data untuk Persona E (Asisten Laboratorium) dan cara setup server routing dasar.
+- Dipakai: Struct `SumberDaya`, `Peminjaman`, `Blokir`, `MemoryStore` di `models.go` dan fungsi `NewHandler` di `main.go`.
+- Diubah: Saya memecah kode hasil AI yang awalnya berpotensi digabung menjadi file-file terpisah (`models.go`, `main.go`, `handler.go`) agar lebih rapi dan mengatasi error "undefined method" saat *routing* dipanggil.
 
-type SumberDaya struct {
-	ID    int    `json:"id"`
-	Nama  string `json:"nama"`
-	Jenis string `json:"jenis"`
-	Stok  int    `json:"stok"`
-}
+## 2. Deteksi bentrok slot dan Blokir Jadwal (validasi.go & handler.go)
+- Prompt: Arahan untuk mengerjakan fitur deteksi bentrok (B5) dan fitur Blokir (Persona E).
+- Dipakai: Fungsi `cekBentrok` dan `validateBlokir` di `validasi.go`, serta logika `handlePostBlokir` di `handler.go`.
+- Diubah: Hasil AI yang menyarankan iterasi biasa saya integrasikan dengan keputusan desain saya (menggunakan *array* berukuran 9) untuk menghitung kapasitas per slot, serta mengatur agar pembatalan jadwal dieksekusi di dalam satu *lock* mutex yang sama.
 
-type Peminjaman struct {
-	ID           int    `json:"id"`
-	SumberDayaID int    `json:"sumber_daya_id"`
-	Peminjam     string `json:"peminjam"`
-	Tanggal      string `json:"tanggal"`
-	SlotMulai    int    `json:"slot_mulai"`
-	SlotSelesai  int    `json:"slot_selesai"`
-	Jumlah       int    `json:"jumlah"`
-	Status       string `json:"status"`
-}
+## 3. Change Request B: Daftar Bentrok (validasi.go)
+- Prompt: Arahan untuk mengerjakan lembar CR-B (Daftar Bentrok) yang mengembalikan array ID peminjaman yang menghalangi.
+- Dipakai: Modifikasi logika pada fungsi `cekBentrok` untuk mengembalikan array `bentrokIDs`.
+- Diubah: Saya menyempurnakan logika iterasi AI dengan mengubah iterasi `map` biasa menjadi perulangan `for i := 1; i < s.NextPeminjamanID; i++` agar ID `bentrok_dengan` yang dikembalikan sudah otomatis terurut naik tanpa perlu memanggil fungsi *sort* tambahan.
 
-type Blokir struct {
-	ID           int    `json:"id"`
-	SumberDayaID int    `json:"sumber_daya_id"`
-	Tanggal      string `json:"tanggal"`
-	SlotMulai    int    `json:"slot_mulai"`
-	SlotSelesai  int    `json:"slot_selesai"`
-	Keterangan   string `json:"keterangan"`
-}
-
-type MemoryStore struct {
-	mu               sync.RWMutex
-	SumberDaya       map[int]SumberDaya
-	Peminjaman       map[int]Peminjaman
-	Blokir           map[int]Blokir
-	NextSumberDayaID int
-	NextPeminjamanID int
-	NextBlokirID     int
-}
-
-func NewMemoryStore() *MemoryStore {
-	return &MemoryStore{
-		SumberDaya:       make(map[int]SumberDaya),
-		Peminjaman:       make(map[int]Peminjaman),
-		Blokir:           make(map[int]Blokir),
-		NextSumberDayaID: 1,
-		NextPeminjamanID: 1,
-		NextBlokirID:     1,
-	}
-}
-- Diubah: -
-
-## (Entri berikutnya)
-- Prompt: Sekarang saya sudah selesai untuk mengerjakan setup untuk bagian struktur data, langkah selanjutnya setup untuk server dan routing. Jelaskan jangan hanya langsung beri kodenya tanpa penjelasan
-- Dipakai: 
-- Diubah:
+## 4. CRUD Dasar dan Validasi (Fitur B1-B4, B6)
+- Prompt: Arahan langkah demi langkah untuk mengerjakan B1 (Sumber daya), B2-B3 (Peminjaman), B4 (Validasi error), dan B6 (Ubah dan hapus).
+- Dipakai: Kerangka fungsi handler CRUD dasar di `handler.go` dan validasi input di `validasi.go`.
+- Diubah: Menyesuaikan penamaan *field* JSON, pesan *error*, dan struktur respons agar mutlak sesuai dengan kontrak API di dokumen Requirement.
